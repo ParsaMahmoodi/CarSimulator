@@ -1,37 +1,42 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using Unity.VisualScripting;
 using UnityEngine;
 
 public class ScreenShoter : MonoBehaviour
 {
-    [SerializeField] private Camera camera;
-    private int _shotCount;
+
+    public GameObject objectToDetect;
+    public RenderTexture rt;
+    public Camera cam;
     
-    private void OnCollisionEnter(Collision collision)
+    private int _shotCount;
+
+    private void Start()
     {
-        if (collision.gameObject.CompareTag("Target"))
-        {
-            StartCoroutine(ScreenShot());
-            Debug.Log("Screenshot taken. \n Camera: " + gameObject.name.ToString());
-        }
+        rt = new RenderTexture(Screen.width, Screen.height, 24);
+        cam = GetComponent<Camera>();
+        cam.targetTexture = rt;
+
+        _shotCount = 0;
     }
 
-    IEnumerator ScreenShot()
+    private void Update()
     {
-        yield return new WaitForEndOfFrame();
-
-        int width = Screen.width;
-        int height = Screen.height;
-
-        Texture2D screenshotTexture = new Texture2D(width, height, TextureFormat.ARGB32, false);
-        Rect rect = new Rect(0, 0, width, height);
-        
-        screenshotTexture.ReadPixels(rect, 0, 0);
-        screenshotTexture.Apply();
-
-        byte[] byteArray = screenshotTexture.EncodeToPNG();
-        System.IO.File.WriteAllBytes(Application.dataPath + "SCREENSHOTS/" + gameObject.name.ToString() + "/Screenshot " + _shotCount, byteArray);
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position, transform.forward, out hit, Mathf.Infinity))
+        {
+            if (hit.collider.gameObject == objectToDetect)
+            {
+                _shotCount++;
+                Texture2D texture = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false);
+                texture.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0);
+                byte[] bytes = texture.EncodeToPNG();
+                File.WriteAllBytes( Application.dataPath + "SCREENSHOTS/" + gameObject.name.ToString() + "/Screenshot " + _shotCount +".png", bytes);
+                Debug.Log("picture taken");
+            }
+        }
     }
 }
