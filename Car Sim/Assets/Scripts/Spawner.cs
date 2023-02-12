@@ -8,6 +8,8 @@ public class Spawner : MonoBehaviour
     [SerializeField] private GameObject[] spawnPoints;
 
     [SerializeField] private CarsNavmesh[] cars;
+    
+    
 
     private int count;
     private bool spawn = true;
@@ -35,6 +37,10 @@ public class Spawner : MonoBehaviour
                 var i = Instantiate(cars[nextCar], spawnPoints[nextSpawnLocation].transform.position,
                     Quaternion.identity);
                 i.Setup(spawnPoints[targetPoint].transform);
+                if (i.GetComponent<NissanNavmesh>())
+                {
+                    i.GetComponent<NissanNavmesh>().Setup(spawnPoints[targetPoint].transform);
+                }
             }
             
             StartCoroutine(PauseSpawn());
